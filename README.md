@@ -2,13 +2,13 @@
 
 ## 🚀 Overview
 
-This project explores the use of **diffusion models for synthetic data generation** to improve **medical image classification performance**.
+This project explores the use of **diffusion models (DDPM)** for synthetic data generation to improve **medical image classification performance**.
 
-We build a complete pipeline that:
+We design and evaluate a full pipeline that:
 - Trains a **diffusion model** on brain MRI scans  
-- Generates **synthetic MRI images**  
+- Generates **synthetic MRI images from noise**  
 - Uses them for **data augmentation**  
-- Evaluates their impact on a **tumor classification model**
+- Measures their impact on a **tumor classification model**
 
 ---
 
@@ -25,45 +25,53 @@ This project investigates:
 
 ---
 
-
-
----
-
 ## 🧠 Approach
 
-### 1️⃣ Baseline Model
-- Model: **ResNet18**
-- Input: Brain MRI images (grayscale, 128×128)
-- Task: Multi-class classification  
-  (`glioma`, `meningioma`, `pituitary`, `no_tumor`)
+### 1️⃣ Baseline Classifier
+- Model: **ResNet18 (pretrained)**
+- Input: Grayscale MRI images (128×128)
+- Classes:
+  - Glioma  
+  - Meningioma  
+  - Pituitary  
+  - No Tumor  
 
 ---
 
 ### 2️⃣ Diffusion Model
-- Architecture: **Custom lightweight UNet**
+- Architecture: **Lightweight UNet**
 - Method: **Denoising Diffusion Probabilistic Model (DDPM)**
-- Trained to generate synthetic MRI images from random noise
+- Trained to:
+
+Learn noise distribution → reconstruct MRI images
+
+
+- Hardware constraint:
+- GPU: **NVIDIA MX450 (2GB VRAM)**
+- Optimizations:
+  - Reduced timesteps
+  - Lightweight architecture
+  - Mixed GPU/CPU memory handling
 
 ---
 
 ### 3️⃣ Synthetic Data Generation
-- Generated **MRI-like images from random noise**
+- Generated MRI-like images from random noise  
 - Stored in structured dataset:
 
-```
+
 synthetic/
 ├── glioma/
 ├── meningioma/
 ├── pituitary/
 └── no_tumor/
-```
 
 
 ---
 
 ### 4️⃣ Data Augmentation Strategy
 
-We evaluated three setups:
+Three experimental setups were evaluated:
 
 | Setup | Description |
 |------|------------|
@@ -75,66 +83,96 @@ We evaluated three setups:
 
 ## 📊 Results
 
-| Experiment | Test Accuracy |
-|----------|--------------|
-| Baseline (Real Data Only) | **92.75%** |
-| Naive Augmentation (100/class, early training) | **91.44%** ❌ |
-| Naive Augmentation (100/class, longer training) | **93.56%** |
-| Controlled Augmentation (30/class) | **94.12%** ✅ |
+### Overall Performance
+
+| Experiment | Accuracy |
+|----------|----------|
+| Baseline | **92.75%** |
+| Naive Augmentation (100/class) | **91.44%** ❌ |
+| Controlled Augmentation (30/class) | **93.25%** ✅ |
+
+---
+
+### Advanced Metrics (Best Model)
+
+| Metric | Value |
+|------|------|
+| Accuracy | **93.25%** |
+| AUC-ROC | **~0.97** |
+| Macro F1-score | **~0.93** |
+
+---
+
+### Class-wise Performance
+
+| Class | Precision | Recall | F1-score |
+|------|----------|--------|----------|
+| Glioma | 0.97 | 0.79 | 0.87 |
+| Meningioma | 0.87 | 0.96 | 0.91 |
+| Pituitary | 0.94 | 1.00 | 0.97 |
+| No Tumor | 0.97 | 0.98 | 0.98 |
 
 ---
 
 ## 🔥 Key Insights
 
-- ✅ Diffusion-based augmentation **can improve performance**
-- ❌ Excessive synthetic data **can degrade generalization**
-- ⚖️ Controlled augmentation provides **optimal results**
+### 1️⃣ Diffusion Augmentation Works
+- Controlled synthetic data improved performance from:
 
-> 📌 **Conclusion:** Quality and balance of synthetic data matter more than quantity.
+92.75% → 93.25%
+
+
+---
+
+### 2️⃣ More Synthetic Data ≠ Better Performance
+- Large synthetic datasets degraded performance:
+
+Over-augmentation → noise injection → reduced generalization
+
+
+---
+
+### 3️⃣ Class-wise Analysis is Critical
+- Glioma recall (~0.79) is lower than other classes  
+- Indicates need for:
+- Class-aware generation  
+- Targeted augmentation  
+
+---
+
+### 4️⃣ Data-Centric AI > Model-Centric AI
+> Improving data quality had a measurable impact without changing model architecture.
 
 ---
 
 ## 🏗️ Project Structure
 
-```
+
 brain-mri-diffusion/
+│
 ├── data/
-│   ├── Training/
-│   │   ├── glioma/
-│   │   ├── meningioma/
-│   │   ├── notumor/
-│   │   └── pituitary/
-│   └── Testing/
-│       ├── glioma/
-│       ├── meningioma/
-│       ├── notumor/
-│       └── pituitary/
+│ ├── Training/
+│ └── Testing/
 │
 ├── synthetic/
-│   ├── glioma/
-│   ├── meningioma/
-│   ├── no_tumor/
-│   └── pituitary/
 │
 ├── diffusion/
-│   ├── model.py
-│   ├── train.py
-│   ├── sample.py
-│   ├── generate_dataset.py
-│   └── diffusion_model_epoch_*.pth
+│ ├── model.py
+│ ├── train.py
+│ ├── sample.py
+│ └── generate_dataset.py
 │
 ├── classifier/
-│   ├── train.py
-│   └── train_augmented.py
+│ ├── train.py
+│ └── train_augmented_metrics.py
 │
 ├── utils/
-│   ├── dataset.py
-│   └── combined_dataset.py
+│ ├── dataset.py
+│ └── combined_dataset.py
 │
 ├── requirements.txt
-├── system_architecture.txt
 └── README.md
-```
+
 
 ---
 
@@ -145,37 +183,7 @@ brain-mri-diffusion/
 - NumPy
 - Matplotlib
 - torchvision
-
----
-
-## 📥 Data Setup
-
-**Note:** The `data/` and `synthetic/` directories are not included in this repository (see `.gitignore`). 
-
-### Real Dataset
-1. Download brain MRI dataset from [Kaggle - Brain Tumor MRI Dataset](https://www.kaggle.com/datasets/masoudnickparvar/brain-tumor-mri-dataset)
-2. Extract and organize into the following structure:
-```
-data/
-├── Training/
-│   ├── glioma/
-│   ├── meningioma/
-│   ├── notumor/
-│   └── pituitary/
-└── Testing/
-    ├── glioma/
-    ├── meningioma/
-    ├── notumor/
-    └── pituitary/
-```
-
-### Synthetic Dataset
-The `synthetic/` directory will be automatically created when you run:
-```bash
-python diffusion/generate_dataset.py
-```
-
-This generates MRI-like images organized by tumor class.
+- scikit-learn
 
 ---
 
@@ -186,45 +194,40 @@ This generates MRI-like images organized by tumor class.
 python diffusion/train.py
 ```
 
-### 2️⃣ Generate Synthetic Data
+### 2️⃣ Generate Synthetic Dataset
 ```bash
 python diffusion/generate_dataset.py
 ```
 
-### 3️⃣ Train Classifier (Augmented)
+### 3️⃣ Train Augmented Classifier
 ```bash
-python classifier/train_augmented.py
+python classifier/train_augmented_metrics.py
 ```
 
 ---
 
 ## 📦 Model Weights
 
-Trained model weights (.pth) are not included in this repository.
+Model weights (.pth) are not included in this repository.
 
-You can reproduce results by running the training scripts above.
-
----
+You can reproduce results by running the training scripts.
 
 ## 🧠 Future Improvements
 
 - Conditional diffusion (class-aware generation)
+- Improve glioma recall using targeted augmentation
 - Higher resolution MRI synthesis
-- Advanced architectures (attention-based UNet)
+- Attention-based UNet architectures
 - Explainability (Grad-CAM)
 - Deployment (Streamlit / API)
 
----
+🏆 Key Takeaway
 
-## 🏆 Key Takeaway
+This project demonstrates a data-centric AI approach, where controlled synthetic data generation using diffusion models leads to measurable improvements in medical image classification.
 
-This project demonstrates a data-centric AI approach, where improving data quality (via diffusion models) leads to measurable gains in model performance.
+📌 Author
 
----
+Adetya Jamwal
+BTech | Computer Science | AI/ML
 
-## 📌 Author
-
-**Adetya Jamwal**  
-BTech | Computer Science | AI/ML Enthusiast
-
-**Give it a ⭐ on GitHub!**
+⭐ If you found this useful, please consider giving it a star!
