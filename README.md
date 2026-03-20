@@ -25,6 +25,10 @@ This project investigates:
 
 ---
 
+
+
+---
+
 ## 🧠 Approach
 
 ### 1️⃣ Baseline Model
@@ -141,6 +145,37 @@ brain-mri-diffusion/
 - NumPy
 - Matplotlib
 - torchvision
+
+---
+
+## 📥 Data Setup
+
+**Note:** The `data/` and `synthetic/` directories are not included in this repository (see `.gitignore`). 
+
+### Real Dataset
+1. Download brain MRI dataset from [Kaggle - Brain Tumor MRI Dataset](https://www.kaggle.com/datasets/masoudnickparvar/brain-tumor-mri-dataset)
+2. Extract and organize into the following structure:
+```
+data/
+├── Training/
+│   ├── glioma/
+│   ├── meningioma/
+│   ├── notumor/
+│   └── pituitary/
+└── Testing/
+    ├── glioma/
+    ├── meningioma/
+    ├── notumor/
+    └── pituitary/
+```
+
+### Synthetic Dataset
+The `synthetic/` directory will be automatically created when you run:
+```bash
+python diffusion/generate_dataset.py
+```
+
+This generates MRI-like images organized by tumor class.
 
 ---
 
