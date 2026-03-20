@@ -1,0 +1,8 @@
+torch 
+torchvision 
+monai 
+diffusers 
+accelerate 
+opencv-python 
+matplotlib 
+scikit-learn

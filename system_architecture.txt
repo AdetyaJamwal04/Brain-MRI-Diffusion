@@ -1,0 +1,13 @@
+MRI Dataset
+   ↓
+Preprocessing (Resize + Normalize)
+   ↓
+Lightweight Diffusion Model (DDPM - optimized)
+   ↓
+Synthetic MRI Generation
+   ↓
+Augmented Dataset
+   ↓
+CNN Classifier (ResNet18)
+   ↓
+Evaluation (AUC, Recall, F1)
